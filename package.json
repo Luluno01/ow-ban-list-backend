@@ -1,0 +1,18 @@
+{
+  "name": "ow-ban-list-backend",
+  "version": "1.0.0",
+  "description": "Get the ban list from Overwatch BBS (China)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "netlify-lambda build src/",
+    "serve": "netlify-lambda serve src/"
+  },
+  "author": "Untitled",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/preset-typescript": "^7.1.0",
+    "@types/aws-lambda": "^8.10.18",
+    "netlify-lambda": "^1.3.3"
+  }
+}
