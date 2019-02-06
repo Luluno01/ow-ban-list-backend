@@ -1,8 +1,10 @@
+import sequelize from './models/db'
+
+
 import {
   APIGatewayProxyEvent,
   APIGatewayProxyCallback
 } from 'aws-lambda'
-import * as _models from './models'
 
 
 export async function handler(
@@ -10,11 +12,14 @@ export async function handler(
   context: any,
   callback: APIGatewayProxyCallback
 ) {
+  let err: Error
+  try {
+    await sequelize.authenticate()
+  } catch(e) {
+    err = e
+  }
   return {
     statusCode: 200,
-    body: 'Thanks for using ow-ban-list'
+    body: err ? err.message : 'OK'
   }
 }
-
-export const models = _models.models
-export const sequelize = _models.sequelize

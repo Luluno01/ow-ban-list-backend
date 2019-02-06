@@ -5,14 +5,22 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "netlify-lambda build src/",
-    "serve": "netlify-lambda serve src/"
+    "makeDummy": "node scripts/makeDummy.js",
+    "sync": "node scripts/sync.js",
+    "build": "npm run makeDummy && netlify-lambda build src/ && npm run sync",
+    "serve": "npm run makeDummy && netlify-lambda serve src/"
   },
   "author": "Untitled",
   "license": "ISC",
   "devDependencies": {
     "@babel/preset-typescript": "^7.1.0",
     "@types/aws-lambda": "^8.10.18",
+    "@types/sequelize": "^4.27.35",
     "netlify-lambda": "^1.3.3"
+  },
+  "dependencies": {
+    "pg": "^7.8.0",
+    "pg-hstore": "^2.3.2",
+    "sequelize": "^4.42.0"
   }
 }
