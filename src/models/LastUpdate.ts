@@ -10,6 +10,11 @@ const LastUpdate = sequelize.define('LastUpdate', {
 export default LastUpdate as TLastUpdate
 
 type TLastUpdate = typeof LastUpdate & {
+  id: number
+  announcementCount: number
+  errs: string
+  createdAt: Date
+  updatedAt: Date
   triggerUpdate(
     announcementCount: number,
     errs: { name: string, url: string, err: (Error | string) }[]
