@@ -8,8 +8,9 @@
     "makeDummy": "node scripts/makeDummy.js",
     "sync": "node scripts/sync.js",
     "buildSDK": "cd src/ow-ban-list/ && npm install && npm run build",
-    "build": "npm run makeDummy && npm run buildSDK && netlify-lambda build src/ && npm run sync",
-    "serve": "npm run makeDummy && netlify-lambda serve src/"
+    "buildFunction": "netlify-lambda build src/ -c webpack.config.js",
+    "build": "npm run makeDummy && npm run buildSDK && npm run buildFunction && npm run sync",
+    "serve": "netlify-lambda serve src/"
   },
   "author": "Untitled",
   "license": "ISC",

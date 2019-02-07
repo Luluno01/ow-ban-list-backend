@@ -3,10 +3,9 @@ import * as Sequelize from 'sequelize'
 import LastUpdate from './LastUpdate'
 import { fetchAnnList } from '../ow-ban-list/build/helpers'
 import BanBlock from './BanBlock'
-import rand from '../helpers/rand'
 
 
-const Announcement = sequelize.define('announcement', {
+export const Announcement = sequelize.define('announcement', {
   name: Sequelize.STRING,
   url: {
     type: Sequelize.TEXT,
@@ -14,9 +13,11 @@ const Announcement = sequelize.define('announcement', {
   }
 })
 
+BanBlock.belongsTo(Announcement, { as: 'ann' })
+
 export default Announcement as TAnnouncement
 
-type TAnnouncement = typeof Announcement & {
+export type TAnnouncement = typeof Announcement & {
   id: number
   name: string
   url: string
@@ -64,7 +65,14 @@ export async function sync() {
   for(let annMeta of annMetas) {
     if(!oldUrls.includes(annMeta.url)) newAnnMetas.push(annMeta)  // New announcement found
   }
-  return (await Announcement.bulkCreate(newAnnMetas)) as TAnnouncement[]
+  try {
+    let anns = (await Announcement.bulkCreate(newAnnMetas)) as TAnnouncement[]
+    await LastUpdate.setUpdate(annMetas.length, '')
+    return anns
+  } catch(err) {
+    await LastUpdate.setUpdate(0, err)  // 0 announcement was updated
+    throw err
+  }
 }
 
 /**
