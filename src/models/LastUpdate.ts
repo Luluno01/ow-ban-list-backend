@@ -1,23 +1,32 @@
 import sequelize from './db'
 import * as Sequelize from 'sequelize'
+import { formatError } from '../helpers/formatError'
 
 
+/**
+ * @description Tht only instance of LastUpdate is used to mark the last update of announcement index.
+ */
 const LastUpdate = sequelize.define('lastUpdate', {
   announcementCount: Sequelize.INTEGER,
-  errs: Sequelize.TEXT
+  err: Sequelize.TEXT,
+  date: Sequelize.DATE
 })
 
 export default LastUpdate as TLastUpdate
 
 type TLastUpdate = typeof LastUpdate & {
   id: number
+  /**
+   * @description The number of announcements whose ban blocks are successfully fetched.
+   */
   announcementCount: number
-  errs: string
+  err: string
   createdAt: Date
   updatedAt: Date
-  triggerUpdate(
+  date: Date
+  setUpdate(
     announcementCount: number,
-    errs: { name: string, url: string, err: (Error | string) }[]
+    err: Error | string
   ): Promise<void>
   getUpdate(): Promise<TLastUpdate>
 }
@@ -26,24 +35,23 @@ export async function sync() {
   await LastUpdate.sync({ force: true })
   await LastUpdate.create({
     announcementCount: 0,
-    errs: '[]'
+    err: '',
+    date: new Date
   })
 }
 
-(LastUpdate as TLastUpdate).triggerUpdate = async (
+(LastUpdate as TLastUpdate).setUpdate = async (
   announcementCount: number,
-  errs: ErrorRecord[]
+  err: Error | string
 ) => {
-  errs = errs.map(err => {
-    if(err.err instanceof Error) {
-      err.err = err.err.stack || err.err.toString()
-    }
-    return err
-  })
-  let data = { announcementCount, errs: JSON.stringify(errs) }
+  err = formatError(err)
+  let data = { announcementCount, err, date: new Date }
   let [ update, created ] = await LastUpdate.findOrCreate({ where: { id: 1 }, defaults: data })
   if(!created) {
-    await (update as typeof LastUpdate).update(data)
+    for(let key in data) {
+      (update as Sequelize.Instance<TLastUpdate>).set(key, data[key])
+    }
+    await (update as Sequelize.Instance<TLastUpdate>).save()
   }
 }
 

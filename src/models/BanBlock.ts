@@ -20,7 +20,7 @@ type TBanBlock = typeof BanBlock & {
   annId: number
   createdAt: Date
   updatedAt: Date
-  fetchBanBlocks(ann: typeof Announcement): Promise<TBanBlock[]>
+  fetch(ann: typeof Announcement): Promise<TBanBlock[]>
 }
 
 export async function sync() {
@@ -28,15 +28,20 @@ export async function sync() {
 }
 
 /**
- * @description Fetch and override ban blocks for this instance.
- * Instance will NOT be saved automatically.
+ * @description Fetch ban blocks for `ann` from web page.
+ * Throws an error and rollback if `ann` already has ban blocks.
  */
-(BanBlock as TBanBlock).fetchBanBlocks = async function fetchBanBlocks(ann: typeof Announcement) {
+(BanBlock as TBanBlock).fetch = async function fetch(ann: typeof Announcement) {
   let blocks = await _fetchBanBlocks(ann)
-  return (await BanBlock.bulkCreate(blocks.map(block => {
-    return {
-      ...block,
-      annId: ann.id
-    }
-  }))) as TBanBlock[]
+  return await sequelize.transaction()
+  .then(async t => {
+    if(await BanBlock.count({ where: { annId: ann.id }, transaction: t })) throw Error('Announcement already has ban blocks')
+    // Create new ban blocks
+    return (await BanBlock.bulkCreate(blocks.map(block => {
+      return {
+        ...block,
+        annId: ann.id
+      }
+    }), { transaction: t })) as TBanBlock[]
+  })
 }

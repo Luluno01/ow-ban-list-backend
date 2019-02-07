@@ -12,4 +12,5 @@ const { models, sequelize } = require('../functions/index');
     }
   }
   sequelize.close()
+  process.exit(0)
 })()
