@@ -2,7 +2,7 @@ import sequelize from './db'
 import * as Sequelize from 'sequelize'
 
 
-const LastUpdate = sequelize.define('LastUpdate', {
+const LastUpdate = sequelize.define('lastUpdate', {
   announcementCount: Sequelize.INTEGER,
   errs: Sequelize.TEXT
 })
@@ -32,7 +32,7 @@ export async function sync() {
 
 (LastUpdate as TLastUpdate).triggerUpdate = async (
   announcementCount: number,
-  errs: { name: string, url: string, err: (Error | string) }[]
+  errs: ErrorRecord[]
 ) => {
   errs = errs.map(err => {
     if(err.err instanceof Error) {
