@@ -29,6 +29,9 @@ export type TAnnouncement = typeof Announcement & {
     fetch(): Promise<typeof BanBlock[]>
     getBans(): Promise<typeof BanBlock[]>
   }
+  fetch(): Promise<typeof BanBlock[]>
+  getBans(): Promise<typeof BanBlock[]>
+  toJSON(): object
 }
 
 export async function sync() {
@@ -49,7 +52,7 @@ export async function sync() {
  */
 (Announcement as TAnnouncement).createIndex = async () => {
   let annMetas = await fetchAnnList()
-  return (await Announcement.bulkCreate(annMetas)) as TAnnouncement[]
+  return (await Announcement.bulkCreate(annMetas, { returning: true })) as TAnnouncement[]
 }
 
 /**
@@ -66,7 +69,7 @@ export async function sync() {
     if(!oldUrls.includes(annMeta.url)) newAnnMetas.push(annMeta)  // New announcement found
   }
   try {
-    let anns = (await Announcement.bulkCreate(newAnnMetas)) as TAnnouncement[]
+    let anns = (await Announcement.bulkCreate(newAnnMetas, { returning: true })) as TAnnouncement[]
     await LastUpdate.setUpdate(annMetas.length, '')
     return anns
   } catch(err) {

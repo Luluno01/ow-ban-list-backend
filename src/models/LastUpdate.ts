@@ -29,6 +29,7 @@ type TLastUpdate = typeof LastUpdate & {
     err: Error | string
   ): Promise<void>
   getUpdate(): Promise<TLastUpdate>
+  toJSON(): object
 }
 
 export async function sync() {

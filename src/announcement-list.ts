@@ -1,16 +1,9 @@
-import {
-  APIGatewayProxyEvent,
-  APIGatewayProxyCallback
-} from 'aws-lambda'
+import { APIGatewayProxyHandler } from 'aws-lambda'
 import Announcement from './models/Announcement'
 import LastUpdate from './models/LastUpdate'
 
 
-export async function handler(
-  event: APIGatewayProxyEvent,
-  context: any,
-  callback: APIGatewayProxyCallback
-) {
+export const handler: APIGatewayProxyHandler = async function handler() {
   let anns: typeof Announcement[] = await Announcement.findAll() as typeof Announcement[]
   let update: typeof LastUpdate = await LastUpdate.getUpdate()
   return {

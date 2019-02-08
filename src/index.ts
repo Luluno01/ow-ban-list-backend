@@ -1,15 +1,8 @@
-import {
-  APIGatewayProxyEvent,
-  APIGatewayProxyCallback
-} from 'aws-lambda'
+import { APIGatewayProxyHandler } from 'aws-lambda'
 import * as _models from './models'
 
 
-export async function handler(
-  event: APIGatewayProxyEvent,
-  context: any,
-  callback: APIGatewayProxyCallback
-) {
+export const handler: APIGatewayProxyHandler = async function handler() {
   return {
     statusCode: 200,
     body: 'Thanks for using ow-ban-list'
