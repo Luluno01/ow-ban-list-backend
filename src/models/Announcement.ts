@@ -3,6 +3,7 @@ import * as Sequelize from 'sequelize'
 import LastUpdate from './LastUpdate'
 import { fetchAnnList } from '../ow-ban-list/build/helpers'
 import BanBlock from './BanBlock'
+import TaskQueue from '../ow-ban-list/build/helpers/TaskQueue'
 
 
 export const Announcement = sequelize.define('announcement', {
@@ -38,11 +39,23 @@ export async function sync() {
   await Announcement.sync({ force: true })  // Re-create table
   let anns = await (Announcement as TAnnouncement).createIndex()  // Create announcements index
   await LastUpdate.setUpdate(anns.length, '')
-  // Pre-fetch ban blocks of the first announcement
+  // Pre-fetch ban blocks
   try {
-    await BanBlock.fetch(anns[0])
+    let job = (new TaskQueue(anns.map(ann => {
+      return async function() {
+        await BanBlock.fetch(ann)
+        console.log(`Ban blocks for announcement (${ann.id}) fetched`)
+      }
+    }), 10))
+    await job.start()
+    let errIndex = Object.keys(job.errs)
+    if(errIndex.length) {
+      console.error(`Failed to fetch ban blocks for some announcement(s): ${errIndex.map(i => anns[i].id)}`)
+      let err: Error | string = job.errs[errIndex[0]]
+      console.error(`The first error is: ${err instanceof Error ? err.stack : err}`)
+    }
   } catch(err) {
-    console.error(`Failed to pre-fetch ban blocks of the first announcement: ${err.stack}`)
+    console.error(`Failed to pre-fetch ban blocks: ${err.stack}`)
   }
 }
 
