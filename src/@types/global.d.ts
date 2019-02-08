@@ -1,4 +1,4 @@
-/// <reference path="./ow-ban-list/src/global.d.ts"/>
+/// <reference path="../ow-ban-list/src/global.d.ts"/>
 
 
 type ErrorRecord = {
