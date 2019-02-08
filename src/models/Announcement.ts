@@ -68,14 +68,19 @@ export async function sync() {
   for(let annMeta of annMetas) {
     if(!oldUrls.includes(annMeta.url)) newAnnMetas.push(annMeta)  // New announcement found
   }
-  try {
-    let anns = (await Announcement.bulkCreate(newAnnMetas, { returning: true })) as TAnnouncement[]
-    await LastUpdate.setUpdate(annMetas.length, '')
-    return anns
-  } catch(err) {
-    await LastUpdate.setUpdate(0, err)  // 0 announcement was updated
-    throw err
-  }
+  if(newAnnMetas.length == 0) return []
+  return await sequelize.transaction()
+  .then(async t => {
+    try {
+      let anns = (await Announcement.bulkCreate(newAnnMetas, { returning: true, transaction: t })) as TAnnouncement[]
+      await LastUpdate.setUpdate(anns.length, '', t)
+      return anns
+    } catch(err) {
+      await LastUpdate.setUpdate(0, err, t)  // 0 announcement was updated
+    } finally {
+      await t.commit()
+    }
+  })
 }
 
 /**
