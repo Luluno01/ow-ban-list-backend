@@ -81,7 +81,10 @@ export async function sync() {
   for(let annMeta of annMetas) {
     if(!oldUrls.includes(annMeta.url)) newAnnMetas.push(annMeta)  // New announcement found
   }
-  if(newAnnMetas.length == 0) return []
+  if(newAnnMetas.length == 0) {
+    await LastUpdate.setUpdate(annMetas.length, '')
+    return []
+  }
   return await sequelize.transaction()
   .then(async t => {
     try {
