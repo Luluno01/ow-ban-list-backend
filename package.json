@@ -9,7 +9,7 @@
     "sync": "node scripts/sync.js",
     "buildSDK": "cd src/ow-ban-list/ && npm install && npm run build",
     "buildFunction": "netlify-lambda build src/ -c webpack.config.js",
-    "build": "npm run makeDummy && npm run buildSDK && npm run buildFunction && npm run sync",
+    "build": "npm run makeDummy && npm run buildSDK && npm run buildFunction",
     "serve": "netlify-lambda serve src/"
   },
   "author": "Untitled",

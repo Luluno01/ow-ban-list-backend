@@ -4,6 +4,7 @@ import LastUpdate from './LastUpdate'
 import { fetchAnnList } from '../ow-ban-list/build/helpers'
 import BanBlock from './BanBlock'
 import TaskQueue from '../ow-ban-list/build/helpers/TaskQueue'
+import retry from '../helpers/retry'
 
 
 export const Announcement = sequelize.define('announcement', {
@@ -42,10 +43,10 @@ export async function sync() {
   // Pre-fetch ban blocks
   try {
     let job = (new TaskQueue(anns.map(ann => {
-      return async function() {
+      return retry(async function() {
         await BanBlock.fetch(ann)
         console.log(`Ban blocks for announcement (${ann.id}) fetched`)
-      }
+      }, 5)
     }), 10))
     await job.start()
     let errIndex = Object.keys(job.errs)
