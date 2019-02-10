@@ -2,7 +2,7 @@ import BadRequest from '../response/BadRequest'
 
 
 export class RequireParameterError extends Error {}
-export type SupportedType = 'string' | 'number' | 'boolean' | 'int'
+export type SupportedType = 'string' | 'number' | 'boolean' | 'int' | 'json' | 'array'
 
 function getTypeErrorResponse(param: string, type: SupportedType) {
   return new BadRequest(`Invalid type of parameter "${param}" of ${type} type`)
@@ -18,7 +18,7 @@ export class Param {
   constructor(queryString: { [name: string]: string }) {
     this.queryString = queryString
   }
-  param: { [name: string]: string | number | boolean } = {}
+  param: { [name: string]: string | number | boolean | object } = {}
   require(param: string, type: SupportedType = 'string', optional: boolean = false) {
     if(optional) {
       if(!(param in this.queryString)) return this
@@ -26,29 +26,30 @@ export class Param {
       this.errRes = getMissingResponse(param, type)
       throw new RequireParameterError
     }
+    let givenParam = this.queryString[param]
     switch(type) {
       case 'string': {
-        this.param[param] = this.queryString[param]
+        this.param[param] = givenParam
         return this
       }
       case 'int': {
-        if(!this.queryString[param].match(/^\d+$/)) {
+        if(!givenParam.match(/^\d+$/)) {
           this.errRes = getTypeErrorResponse(param, type)
           throw new RequireParameterError
         }
-        this.param[param] = parseInt(this.queryString[param])
+        this.param[param] = parseInt(givenParam)
         return this
       }
       case 'number': {
-        if(!this.queryString[param].match(/^(\d+)(.\d+)?$/)) {
+        if(!givenParam.match(/^(\d+)(.\d+)?$/)) {
           this.errRes = getTypeErrorResponse(param, type)
           throw new RequireParameterError
         }
-        this.param[param] = parseFloat(this.queryString[param])
+        this.param[param] = parseFloat(givenParam)
         return this
       }
       case 'boolean': {
-        switch(this.queryString[param]) {
+        switch(givenParam) {
           case '1':
           case 'true':
           case 'True':
@@ -67,6 +68,28 @@ export class Param {
             this.errRes = getTypeErrorResponse(param, type)
             throw new RequireParameterError
           }
+        }
+      }
+      case 'json': {
+        try {
+          this.param[param] = JSON.parse(givenParam)
+        } catch(err) {
+          this.errRes = getTypeErrorResponse(param, type)
+          throw new RequireParameterError
+        }
+      }
+      case 'array': {
+        try {
+          let arr = JSON.parse(givenParam)
+          if(arr instanceof Array) {
+            this.param[param] = arr
+          } else {
+            this.errRes = getTypeErrorResponse(param, type)
+            throw new RequireParameterError
+          }
+        } catch(err) {
+          this.errRes = getTypeErrorResponse(param, type)
+          throw new RequireParameterError
         }
       }
     }

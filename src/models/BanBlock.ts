@@ -1,8 +1,10 @@
+/// <reference path="../@types/global.d.ts" />
 import sequelize from './db'
 import * as Sequelize from 'sequelize'
 import { TAnnouncement } from './Announcement'
 import { fetchBanBlocks as _fetchBanBlocks } from '../ow-ban-list/build/helpers'
 import hash from '../helpers/hash'
+import escapeLike from '../helpers/escapeLike'
 
 
 const BanBlock = sequelize.define('banBlock', {
@@ -26,6 +28,7 @@ type TBanBlock = typeof BanBlock & {
   updatedAt: Date
   fetch(ann: TAnnouncement): Promise<TBanBlock[]>
   toJSON(): object
+  search(keyWords: string[]): Promise<any>
 }
 
 export async function sync() {
@@ -54,16 +57,12 @@ export async function sync() {
     await t.commit()
     return createdBlocks
   })
-  // return await sequelize.transaction()
-  // .then(async t => {
-  //   if(await BanBlock.count({ where: { annId: ann.id }, transaction: t })) throw Error('Announcement already has ban blocks')
-  //   // Create new ban blocks
-  //   // BulkCreate seem to be incompatible with transaction
-  //   return (await BanBlock.bulkCreate(blocks.map(block => {
-  //     return {
-  //       ...block,
-  //       annId: ann.id
-  //     }
-  //   }), { transaction: t })) as TBanBlock[]
-  // })
+};
+
+
+const SQL_BASE = 'SELECT distinct x."id", x."annId" FROM (SELECT "public"."banBlocks"."id", "public"."banBlocks"."annId", unnest("public"."banBlocks"."battleTags") tag FROM "public"."banBlocks") x WHERE '
+const CONDITION = 'lower(tag) LIKE ';
+(BanBlock as TBanBlock).search = async function search(keyWords: string[]) {
+  let conditions = keyWords.map(keyWord => CONDITION + "'%" + escapeLike(keyWord.toLowerCase()) + "%' ESCAPE '\\'")
+  return await sequelize.query(SQL_BASE + conditions.join(` OR `) + ';', { type: sequelize.QueryTypes.SELECT })
 }
