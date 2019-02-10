@@ -1,5 +1,6 @@
 import {
-  APIGatewayProxyResult
+  APIGatewayProxyResult,
+  APIGatewayProxyEvent
 } from 'aws-lambda'
 
 
@@ -18,7 +19,14 @@ export class Response implements APIGatewayProxyResult {
   body: string
   isBase64Encoded: boolean
 
-  constructor(body: string | boolean | number | Formatable | object = '') {
+  constructor(body: string | boolean | number | Formatable | object = '', event: APIGatewayProxyEvent) {
+    let origin = event.headers['origin'] || event.headers['Origin']
+    if(origin && process.env.CORS) {
+      if(process.env.CORS.split(',').includes(origin)) {
+        this.setHeader('Access-Control-Allow-Credentials', true)
+        this.setHeader('Access-Control-Allow-Origin', origin)
+      }
+    }
     switch(typeof body) {
       case 'string': break;
       case 'undefined':

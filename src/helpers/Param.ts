@@ -1,29 +1,34 @@
+import { APIGatewayProxyEvent } from 'aws-lambda'
 import BadRequest from '../response/BadRequest'
 
 
 export class RequireParameterError extends Error {}
 export type SupportedType = 'string' | 'number' | 'boolean' | 'int' | 'json' | 'array'
 
-function getTypeErrorResponse(param: string, type: SupportedType) {
-  return new BadRequest(`Invalid type of parameter "${param}" of ${type} type`)
+function getTypeErrorResponse(param: string, type: SupportedType, event: APIGatewayProxyEvent) {
+  return new BadRequest(`Invalid type of parameter "${param}" of ${type} type`, event)
 }
 
-function getMissingResponse(param: string, type: SupportedType) {
-  return new BadRequest(`Missing parameter "${param}" of ${type} type`)
+function getMissingResponse(param: string, type: SupportedType, event: APIGatewayProxyEvent) {
+  return new BadRequest(`Missing parameter "${param}" of ${type} type`, event)
 }
 
 export class Param {
   private queryString: { [name: string]: string }
+  event: APIGatewayProxyEvent
   errRes?: BadRequest
-  constructor(queryString: { [name: string]: string }) {
+
+  constructor(queryString: { [name: string]: string }, event: APIGatewayProxyEvent) {
     this.queryString = queryString
+    this.event = event
   }
+
   param: { [name: string]: string | number | boolean | object } = {}
   require(param: string, type: SupportedType = 'string', optional: boolean = false) {
     if(optional) {
       if(!(param in this.queryString)) return this
     } else if(!(param in this.queryString)) {
-      this.errRes = getMissingResponse(param, type)
+      this.errRes = getMissingResponse(param, type, this.event)
       throw new RequireParameterError
     }
     let givenParam = this.queryString[param]
@@ -34,7 +39,7 @@ export class Param {
       }
       case 'int': {
         if(!givenParam.match(/^\d+$/)) {
-          this.errRes = getTypeErrorResponse(param, type)
+          this.errRes = getTypeErrorResponse(param, type, this.event)
           throw new RequireParameterError
         }
         this.param[param] = parseInt(givenParam)
@@ -42,7 +47,7 @@ export class Param {
       }
       case 'number': {
         if(!givenParam.match(/^(\d+)(.\d+)?$/)) {
-          this.errRes = getTypeErrorResponse(param, type)
+          this.errRes = getTypeErrorResponse(param, type, this.event)
           throw new RequireParameterError
         }
         this.param[param] = parseFloat(givenParam)
@@ -65,7 +70,7 @@ export class Param {
             return this
           }
           default: {
-            this.errRes = getTypeErrorResponse(param, type)
+            this.errRes = getTypeErrorResponse(param, type, this.event)
             throw new RequireParameterError
           }
         }
@@ -74,7 +79,7 @@ export class Param {
         try {
           this.param[param] = JSON.parse(givenParam)
         } catch(err) {
-          this.errRes = getTypeErrorResponse(param, type)
+          this.errRes = getTypeErrorResponse(param, type, this.event)
           throw new RequireParameterError
         }
       }
@@ -84,11 +89,11 @@ export class Param {
           if(arr instanceof Array) {
             this.param[param] = arr
           } else {
-            this.errRes = getTypeErrorResponse(param, type)
+            this.errRes = getTypeErrorResponse(param, type, this.event)
             throw new RequireParameterError
           }
         } catch(err) {
-          this.errRes = getTypeErrorResponse(param, type)
+          this.errRes = getTypeErrorResponse(param, type, this.event)
           throw new RequireParameterError
         }
       }

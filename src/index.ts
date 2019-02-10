@@ -5,7 +5,7 @@ import * as _models from './models'
 export const handler: APIGatewayProxyHandler = async function handler() {
   return {
     statusCode: 200,
-    body: 'Thanks for using ow-ban-list'
+    body: `Thanks for using ow-ban-list`
   }
 }
 

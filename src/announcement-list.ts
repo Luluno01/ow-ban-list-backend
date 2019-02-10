@@ -2,6 +2,7 @@ import { APIGatewayProxyHandler } from 'aws-lambda'
 import Announcement from './models/Announcement'
 import LastUpdate from './models/LastUpdate'
 import Redirect from './response/Redirect'
+import OK from './response/OK'
 
 
 export const handler: APIGatewayProxyHandler = async function handler(event) {
@@ -15,22 +16,16 @@ export const handler: APIGatewayProxyHandler = async function handler(event) {
     } catch(err) {
       console.error(`Cannot update announcements index: ${err.stack}`)
     }
-    return new Redirect(event.path)
+    return new Redirect(event.path, event)
   }
-  return {
-    statusCode: 200,
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      anns: anns.map(ann => {
-        return {
-          id: ann.id,
-          name: ann.name,
-          url: ann.url
-        }
-      }),
-      updatedAt: update.updatedAt.getTime()
-    })
-  }
+  return new OK({
+    anns: anns.map(ann => {
+      return {
+        id: ann.id,
+        name: ann.name,
+        url: ann.url
+      }
+    }),
+    updatedAt: update.updatedAt.getTime()
+  }, event)
 }

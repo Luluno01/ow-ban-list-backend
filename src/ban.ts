@@ -8,7 +8,7 @@ import NotFound from './response/NotFound'
 
 
 export const handler: APIGatewayProxyHandler = async function handler(event: APIGatewayProxyEvent) {
-  let param = new Param(event.queryStringParameters)
+  let param = new Param(event.queryStringParameters, event)
   try {
     param
     .require('ann', 'int')
@@ -40,24 +40,24 @@ export const handler: APIGatewayProxyHandler = async function handler(event: API
         return new OK({
           ban: rows[0] ? rows[0].toJSON() : null,
           count
-        })
+        }, event)
       } else {
-        return new BadRequest('No such announcement')
+        return new BadRequest('No such announcement', event)
       }
     } else {
       console.log(`${count} ban blocks found for announcement (${annId})`)
       return new OK({
         ban: rows[0] ? rows[0].toJSON() : null,
         count
-      })
+      }, event)
     }
   } catch(err) {
     try {
       param.require('id', 'int')
       let banBlockId = param.param.id as number
       let banBlock = await BanBlock.findByPk(banBlockId) as typeof BanBlock
-      if(banBlock) return new OK(banBlock)
-      else return new NotFound('No such ban block')
+      if(banBlock) return new OK(banBlock, event)
+      else return new NotFound('No such ban block', event)
     } catch(err) {
       return param.errRes
     }

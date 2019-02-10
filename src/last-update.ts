@@ -1,11 +1,9 @@
-import { APIGatewayProxyHandler } from 'aws-lambda'
+import { APIGatewayProxyHandler, APIGatewayProxyEvent } from 'aws-lambda'
 import LastUpdate from './models/LastUpdate'
+import OK from './response/OK'
 
 
-export const handler: APIGatewayProxyHandler = async function handler() {
+export const handler: APIGatewayProxyHandler = async function handler(event: APIGatewayProxyEvent) {
   let update = await LastUpdate.getUpdate()
-  return {
-    statusCode: 200,
-    body: `${update.createdAt.getTime()}`
-  }
+  return new OK(update.createdAt.getTime(), event)
 }
