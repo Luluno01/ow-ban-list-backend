@@ -1,6 +1,6 @@
 # ow-ban-list-backend
 
-Get the ban list from Overwatch BBS (China).
+Get the ban list from Overwatch BBS (China). Currently deployed at [ow-ban-list-v1.0x00000000.tk](https://ow-ban-list-v1.0x00000000.tk).
 
 ## Requirements
 
@@ -8,6 +8,13 @@ Get the ban list from Overwatch BBS (China).
 * `npm` or other functionally equivalent package manager (used to install dependencies and build)
 * `PostgreSQL` (used to store the ban list)
 * A [Netlify](https://www.netlify.com) account
+
+## APIs
+
+* [`announcement-list`](https://github.com/Luluno01/ow-ban-list-backend/blob/master/docs/annoucement-list.md)
+* [`ban`](https://github.com/Luluno01/ow-ban-list-backend/blob/master/docs/ban.md)
+* [`last-update`](https://github.com/Luluno01/ow-ban-list-backend/blob/master/docs/last-update.md)
+* [`search`](https://github.com/Luluno01/ow-ban-list-backend/blob/master/docs/search.md)
 
 ## Development and Deploy
 
