@@ -5,5 +5,5 @@ import OK from './response/OK'
 
 export const handler: APIGatewayProxyHandler = async function handler(event: APIGatewayProxyEvent) {
   let update = await LastUpdate.getUpdate()
-  return new OK(update.createdAt.getTime(), event)
+  return new OK(update.date.getTime(), event)
 }
