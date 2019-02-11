@@ -26,6 +26,6 @@ export const handler: APIGatewayProxyHandler = async function handler(event) {
         url: ann.url
       }
     }),
-    updatedAt: update.updatedAt.getTime()
+    updatedAt: update.date.getTime()
   }, event)
 }
